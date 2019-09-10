@@ -32,4 +32,49 @@ defmodule Capture.SurveysTest do
       assert updated_response.value == 1
     end
   end
+
+  describe "surveys, count responses based on survey_id and values" do
+    naive_datetime = NaiveDateTime.utc_now()
+
+    @response2 %{
+      :question_id => 2,
+      :survey_id => 1,
+      :user_id => 34,
+      :value => 2,
+      :inserted_at => NaiveDateTime.truncate(naive_datetime, :second),
+      :updated_at => NaiveDateTime.truncate(naive_datetime, :second)
+    }
+    @response1 %{
+      :question_id => 1,
+      :survey_id => 1,
+      :user_id => 42,
+      :value => 1,
+      :inserted_at => NaiveDateTime.truncate(naive_datetime, :second),
+      :updated_at => NaiveDateTime.truncate(naive_datetime, :second)
+    }
+    @response3 %{
+      :question_id => 3,
+      :survey_id => 1,
+      :user_id => 27,
+      :value => 2,
+      :inserted_at => NaiveDateTime.truncate(naive_datetime, :second),
+      :updated_at => NaiveDateTime.truncate(naive_datetime, :second)
+    }
+
+    setup do
+      response = Repo.insert_all(Response, [@response1, @response2, @response3])
+
+      {:ok, response: response}
+    end
+
+    test "count survey answers" do
+      count = Surveys.survey_answers(1)
+
+      assert count.ones == 1
+      assert count.twos == 2
+      assert count.threes == 0
+      assert count.fours == 0
+      assert count.fives == 0
+    end
+  end
 end
