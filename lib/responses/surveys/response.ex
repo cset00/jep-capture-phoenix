@@ -8,6 +8,8 @@ defmodule Capture.Surveys.Response do
     field :user_id, :integer
     field :value, :integer
 
+    many_to_many :demogaphics, Capture.Surveys.Demographics, join_through: "demographics_responses"
+
     timestamps()
   end
 
