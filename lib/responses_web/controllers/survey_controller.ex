@@ -6,10 +6,13 @@ defmodule CaptureWeb.SurveyController do
 
   action_fallback CaptureWeb.FallbackController
 
-  def show(conn, %{
-    "id" => id
-  } = params) do
-    survey = Surveys.survey_answers(id)
+  def show(
+        conn,
+        %{
+          "id" => id
+        } = params
+      ) do
+    survey = Surveys.count_survey_answers_query(id) |> Surveys.survey_answers()
 
     conn
     |> render("show.json", survey: survey)

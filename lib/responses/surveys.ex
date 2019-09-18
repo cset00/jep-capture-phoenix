@@ -13,11 +13,11 @@ defmodule Capture.Surveys do
     |> case do
       nil ->
         create_response(params)
+
       response ->
         update_response(response, params)
-      end
     end
-
+  end
 
   @doc """
   Creates a response.
@@ -56,65 +56,52 @@ defmodule Capture.Surveys do
   end
 
   def find_response(%{
-    "survey_id" => survey_id,
-    "question_id" => question_id,
-    "user_id" => user_id
-  }) do
+        "survey_id" => survey_id,
+        "question_id" => question_id,
+        "user_id" => user_id
+      }) do
     Response
     |> where(
       survey_id: ^survey_id,
       question_id: ^question_id,
       user_id: ^user_id
     )
-    |> Repo.one
+    |> Repo.one()
   end
 
   def find_response(id) do
     Response
-    |> where(
-      id: ^id
-    )
-    |> Repo.one
+    |> where(id: ^id)
+    |> Repo.one()
   end
 
-  def survey_answers(survey_id) do
+  def count_survey_answers_query(survey_id) do
+    Response
+    |> where(survey_id: ^survey_id)
+  end
+
+  def count_survey_question_answers_query(survey_id, question_id) do
+    count_survey_answers_query(survey_id)
+    |> where(question_id: ^question_id)
+  end
+
+  def survey_answers(query) do
+    count = query |> aggregate_values
+
     %{
-      ones: count_survey_answers(survey_id, 1),
-      twos: count_survey_answers(survey_id, 2),
-      threes: count_survey_answers(survey_id, 3),
-      fours: count_survey_answers(survey_id, 4),
-      fives:  count_survey_answers(survey_id, 5),
+      ones: count[1] || 0,
+      twos: count[2] || 0,
+      threes: count[3] || 0,
+      fours: count[4] || 0,
+      fives: count[5] || 0
     }
   end
 
-  defp count_survey_answers(survey_id, value) do
-    Response
-    |> where(
-      survey_id: ^survey_id,
-      value: ^value
-    )
+  defp aggregate_values(query) do
+    query
+    |> group_by([r], r.value)
+    |> select([r], {r.value, count(r.value)})
     |> Repo.all()
-    |> Enum.count()
-  end
-
-  def survey_question_answers(survey_id, question_id) do
-    %{
-      ones: count_survey_question_answers(survey_id, question_id, 1),
-      twos: count_survey_question_answers(survey_id, question_id, 2),
-      threes: count_survey_question_answers(survey_id, question_id, 3),
-      fours: count_survey_question_answers(survey_id, question_id, 4),
-      fives: count_survey_question_answers(survey_id, question_id, 5)
-    }
-  end
-
-  defp count_survey_question_answers(survey_id, question_id, value) do
-    Response
-    |> where(
-      survey_id: ^survey_id,
-      question_id: ^question_id,
-      value: ^value
-    )
-    |> Repo.all()
-    |> Enum.count()
+    |> Enum.into(%{})
   end
 end
