@@ -9,3 +9,10 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
+
+Capture.Surveys.create_response(%{
+  "question_id" => 2,
+  "survey_id" => 2,
+  "user_id" => 42,
+  "value" => 3
+})

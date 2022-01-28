@@ -20,4 +20,13 @@ defmodule CaptureWeb.ResponseController do
     |> put_resp_header("location", Routes.response_path(conn, :show, response))
     |> render("show.json", response: response)
   end
+
+  def show(conn, %{
+      "id" => id
+    } = params) do
+    response = Surveys.find_response(id)
+
+    conn
+    |> render("show.json", response: response)
+  end
 end

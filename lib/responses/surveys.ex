@@ -13,11 +13,11 @@ defmodule Capture.Surveys do
     |> case do
       nil ->
         create_response(params)
+
       response ->
         update_response(response, params)
-      end
     end
-
+  end
 
   @doc """
   Creates a response.
@@ -56,16 +56,52 @@ defmodule Capture.Surveys do
   end
 
   def find_response(%{
-    "survey_id" => survey_id,
-    "question_id" => question_id,
-    "user_id" => user_id
-  }) do
+        "survey_id" => survey_id,
+        "question_id" => question_id,
+        "user_id" => user_id
+      }) do
     Response
     |> where(
       survey_id: ^survey_id,
       question_id: ^question_id,
       user_id: ^user_id
     )
-    |> Repo.one
+    |> Repo.one()
+  end
+
+  def find_response(id) do
+    Response
+    |> where(id: ^id)
+    |> Repo.one()
+  end
+
+  def count_survey_answers_query(survey_id) do
+    Response
+    |> where(survey_id: ^survey_id)
+  end
+
+  def count_survey_question_answers_query(survey_id, question_id) do
+    count_survey_answers_query(survey_id)
+    |> where(question_id: ^question_id)
+  end
+
+  def survey_answers(query) do
+    count = query |> aggregate_values
+
+    %{
+      ones: count[1] || 0,
+      twos: count[2] || 0,
+      threes: count[3] || 0,
+      fours: count[4] || 0,
+      fives: count[5] || 0
+    }
+  end
+
+  defp aggregate_values(query) do
+    query
+    |> group_by([r], r.value)
+    |> select([r], {r.value, count(r.value)})
+    |> Repo.all()
+    |> Enum.into(%{})
   end
 end
